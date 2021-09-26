@@ -1,13 +1,24 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Prismic from '@prismicio/client'
+import { RichText } from 'prismic-dom'
 
 import styles from './styles.module.scss';
 import { getPrismicClient } from '../../services/prismic';
 
 
+type Post = {
+  slug:string;
+  title: string;
+  excerpt: string;
+  updatedAt: string;
+}
 
-export default function Home({ product }: HomeProps) {
+interface PostsProps {
+  posts: Post[],
+}
+
+export default function Posts({ posts }: PostsProps) {
   return (
     <>
       <Head>
@@ -16,31 +27,13 @@ export default function Home({ product }: HomeProps) {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="">
-            <time>12 de março de 2021</time>
-            <strong>Creating a Monorepo</strong>
-            <p>In this guide, you will learn how to create</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>Creating a Monorepo</strong>
-            <p>In this guide, you will learn how to create</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>Creating a Monorepo</strong>
-            <p>In this guide, you will learn how to create</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>Creating a Monorepo</strong>
-            <p>In this guide, you will learn how to create</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>Creating a Monorepo</strong>
-            <p>In this guide, you will learn how to create</p>
-          </a>
+          {posts.map(post => (
+            <a href="#" key={post.slug}>
+              <time>{post.updatedAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -60,12 +53,24 @@ export const getStaticProps: GetStaticProps = async () => {
       pageSize: 100,
     })
 
-    console.log(JSON.stringify(response, null, 2))
+    // console.log(JSON.stringify(response, null, 2))
+
+    const posts = response.results.map(post => {
+      return {
+        slug: post.uid,
+        title: RichText.asText(post.data.title),
+        excerpt: post.data.content.find(content => content.type === 'paragraph')?.text || "",
+        updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        })
+      }
+    })
 
   return {
     props: {
-
-
+      posts
     }
   }
 
