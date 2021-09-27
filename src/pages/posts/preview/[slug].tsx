@@ -1,4 +1,4 @@
-import { GetStaticProps } from "next"
+import { GetStaticPaths, GetStaticProps } from "next"
 import { RichText } from "prismic-dom"
 import { getPrismicClient } from "../../../services/prismic"
 import Head from 'next/head'
@@ -58,10 +58,15 @@ export default function PostPreview({ post }: PostPreviewProps) {
 	)
 }
 
-export const getStaticPaths = () => {
+export const getStaticPaths: GetStaticPaths = () => {
+
+	// fazer uma chama dos paths mais quentes (mais acessados)
+
 	return {
-		paths: [],
-		fallback: 'blocking'
+		paths: [
+			// { params: { slug: 'conhecendo-o-npx---executor-de-pacotes-do-npm' } }
+		],
+		fallback: 'blocking' // true (causa layout shift pois carrega com client side). false (404 se não foi gerado), blocking (carrega com server side)
 	}
 }
 
@@ -88,7 +93,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	}
 
 	return {
-		props: { post }
+		props: { post },
+		revalidate: 60 * 30, // 30 minutes
 	}
 
 }
